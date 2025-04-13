@@ -31,24 +31,13 @@ class LoginApprovalController extends Controller
     }
 
 
-    public function handle(Request $request)
+    public function handle()
     {
-        $requestId = $request->input('request_id');
-        $approved = filter_var($request->input('approved'), FILTER_VALIDATE_BOOLEAN);
-        $loginRequest = LoginRequest::find($requestId);
-
-        if (!$loginRequest) {
-            return response()->json(['error' => 'Invalid request ID'], 404);
-        }
-
-        if ($loginRequest->status !== 'pending') {
-            return response()->json(['message' => 'Already handled']);
-        }
-
-        $loginRequest->status = $approved ? 'approved' : 'denied';
-        $loginRequest->save();
-
-        return response()->json(['message' => 'Login request updated.']);
+       
+        return response()->json([
+            ["ip" => "192.168.0.1", "time" => "2025-04-13 21:30:00"],
+            ["ip" => "10.0.0.5", "time" => "2025-04-13 18:10:00"]
+        ]);
     }
 
 }
