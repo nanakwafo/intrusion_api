@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\RegistrationMail;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 use App\Services\AkeselService;
 use App\Models\LoginRequest;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class AuthController extends Controller
 
         $fields = $request->validate([
             'name' => 'required|max:255',
+            'phone_number' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|confirmed'
         ]);
@@ -54,55 +56,65 @@ class AuthController extends Controller
                     'email' => ['The provided credentials are incorrect.']
                 ]
             ];
-            // return [
-            //     'message' => 'The provided credentials are incorrect.'
-            // ];
-        }
 
+        }
         $token = $user->createToken($user->name);
 
-        // Create login approval record
-        $loginRequest = LoginRequest::create(['user_id' => $user->id]);
+        $phoneNumber = $user->phone_number; // Assuming this is passed in the request
 
-        // Simulate SMS (for Flutter app to intercept or for actual SMS)
-        $ip = $request->ip();
-        $time = Carbon::now()->format('g:iA');
-        $message= "<#> Login attempt from $ip at $time. Approval code:$loginRequest->id\nMyApp: QoEc1CI5/ss";
-        // You could use a real SMS service here (Twilio, AWS SNS, etc.)
-        $to = 233593858412;
-        $this->akeselService->sendSms($to, $message);
-
-
-
-
-        $requestId = $loginRequest->id;
-        $timeout = 60; // seconds
-        $startTime = time();
-
-        while (time() - $startTime < $timeout) {
-            // Get the login request
-
-            $loginRequest = LoginRequest::find($requestId);
-
-            // If we found the request and it's not pending, return the result
-            if ($loginRequest && $loginRequest->status !== 'pending') {
-                // Timeout if the status isn't updated within the time limit
-                return response()->json(['status' => 'timeout'], 408);
-
-            }
-
-            // Wait for 2 seconds before polling again
-            sleep(2);
-        }
-
-
-        return [
-            'user' => $user,
-            'token' => $token->plainTextToken,
-            'request_id' => $loginRequest->id,
-            'notification'=>$message
+        $data = [
+            'expiry'   => 10,
+            'length'   => 6,
+            'medium'   => 'sms',
+            'message'  => 'This is OTP from CTVET, %otp_code%',
+            'number'   => $phoneNumber,
+            'sender_id'=> 'CTVET',
+            'type'     => 'numeric',
         ];
+        $headers = [
+            'api-key' => 'VUFpUWRNZE5IWW9FUW9qd3FRbUE', // Replace with your actual API key
+        ];
+        $response = Http::withHeaders($headers)->post('https://sms.arkesel.com/api/otp/generate', $data);
+        if ($response->successful()) {
+            $result = $response->json();
+            if ($result['code'] !== '1000') {
+                return response()->json($result, 500);
+            }
+            $ip = $request->ip();
+            $time = Carbon::now()->format('g:iA');
+            $loginRequest = LoginRequest::create(['user_id' => $user->id,'ip' => $ip, 'time' => $time, 'phone_number' => $phoneNumber]);
 
+
+            $timeout = 60; // seconds
+            $startTime = time();
+
+            while (time() - $startTime < $timeout) {
+                // Get the login request
+
+                $loginRequest = LoginRequest::find($user->id) ->latest()
+                    ->first();
+
+                // If we found the request and it's not pending, return the result
+                if ($loginRequest && $loginRequest->status !== 'pending') {
+                    // Timeout if the status isn't updated within the time limit
+
+
+                    return [
+                        'user' => $user,
+                        'token' => $token->plainTextToken,
+
+                    ];
+
+                }
+
+                // Wait for 2 seconds before polling again
+                sleep(2);
+            }
+            return response()->json(['status' => 'timeout'], 408);
+
+
+        }
+        return response()->json(['error' => 'Failed to send OTP.'], 500);
 
 
     }

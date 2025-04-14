@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('login_requests', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
+            $table->string('ip');
+            $table->string('time');
+            $table->string('phone_number');
             $table->string('status')->default('pending'); // approved / denied
             $table->timestamps();
         });

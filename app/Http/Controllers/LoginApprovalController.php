@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use App\Models\LoginRequest;
 
@@ -30,7 +30,43 @@ class LoginApprovalController extends Controller
         return response()->json(['status' => 'timeout'], 408);
     }
 
+    public function verifyOtp(Request $request){
+        $phoneNumber = $request->input('phoneNumber');
+        $code = $request->input('code');
 
+        $data = [
+            'api_key' => 'VUFpUWRNZE5IWW9FUW9qd3FRbUE', // Arkesel API key
+            'code'    => $code,
+            'number'  => $phoneNumber,
+        ];
+
+        $headers = [
+            'api-key' => 'VUFpUWRNZE5IWW9FUW9qd3FRbUE',
+        ];
+
+        $response = Http::withHeaders($headers)
+            ->post('https://sms.arkesel.com/api/otp/verify', $data);
+
+        if ($response->successful()) {
+            $result = $response->json();
+
+            if ($result['code'] !== '1100') {
+                return response()->json($result, 500); // OTP invalid or expired
+            }
+    //update
+            $latestRequest = LoginRequest::where('phone_number', $phoneNumber)
+                ->latest() // orders by created_at descending
+                ->first();
+
+            if ($latestRequest) {
+                $latestRequest->status = 'approved'; // or 'denied'
+                $latestRequest->save();
+            }
+            return response()->json($result, 200); // OTP verified successfully
+        }
+
+        return response()->json(['error' => 'OTP verification failed.'], 500);
+     }
     public function handle()
     {
 

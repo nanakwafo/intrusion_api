@@ -19,4 +19,5 @@ Route::post('/logout',[AuthController::class,'logout'])->middleware('auth:sanctu
 
 
 Route::get('/login-attempt', [LoginApprovalController::class, 'handle']);
+Route::post('verify-otp', [LoginApprovalController::class, 'verifyOtp']);
 Route::get('/login-status', [LoginApprovalController::class, 'checkStatus']);
