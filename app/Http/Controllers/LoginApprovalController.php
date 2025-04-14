@@ -33,10 +33,12 @@ class LoginApprovalController extends Controller
 
     public function handle()
     {
-       
+
         return response()->json([
-            ["ip" => "192.168.0.1", "time" => "2025-04-13 21:30:00"],
-            ["ip" => "10.0.0.5", "time" => "2025-04-13 18:10:00"]
+            ["ip" => "192.168.0.1", "time" => "2025-04-13 21:30:00","status"=> "approved"],
+            ["ip" => "192.168.0.1", "time" => "2025-04-13 21:30:00","status"=> "approved"],
+            ["ip" => "10.0.0.5", "time" => "2025-04-13 18:10:00","status"=> "denied"],
+            ["ip" => "10.0.0.5", "time" => "2025-04-13 18:10:00","status"=> "pending"]
         ]);
     }
 
