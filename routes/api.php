@@ -18,5 +18,5 @@ Route::post('/logout',[AuthController::class,'logout'])->middleware('auth:sanctu
 
 
 
-Route::get('/login-approval', [LoginApprovalController::class, 'handle']);
+Route::get('/login-attempt', [LoginApprovalController::class, 'handle']);
 Route::get('/login-status', [LoginApprovalController::class, 'checkStatus']);
