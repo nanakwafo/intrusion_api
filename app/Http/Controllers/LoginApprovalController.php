@@ -17,8 +17,8 @@ class LoginApprovalController extends Controller
             // Get the login request
             $loginRequest = LoginRequest::find($requestId);
 
-            // If we found the request and it's not pending, return the result
-            if ($loginRequest && $loginRequest->status !== 'pending') {
+            // If we found the request and it's not denied, return the result
+            if ($loginRequest && $loginRequest->status !== 'denied') {
                 return response()->json(['status' => $loginRequest->status]);
             }
 
@@ -71,12 +71,7 @@ class LoginApprovalController extends Controller
     {
         $loginRequests = LoginRequest::select('ip', 'time', 'status')->get();
         return response()->json($loginRequests);
-//        return response()->json([
-//            ["ip" => "192.168.0.1", "time" => "2025-04-13 21:30:00","status"=> "approved"],
-//            ["ip" => "192.168.0.1", "time" => "2025-04-13 21:30:00","status"=> "approved"],
-//            ["ip" => "10.0.0.5", "time" => "2025-04-13 18:10:00","status"=> "denied"],
-//            ["ip" => "10.0.0.5", "time" => "2025-04-13 18:10:00","status"=> "pending"]
-//        ]);
+
     }
 
 }

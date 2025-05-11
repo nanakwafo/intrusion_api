@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('ip');
             $table->string('time');
             $table->string('phone_number');
-            $table->string('status')->default('pending'); // approved / denied
+            $table->string('status')->default('denied'); // approved / denied
             $table->timestamps();
         });
     }

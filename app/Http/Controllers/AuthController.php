@@ -94,8 +94,8 @@ class AuthController extends Controller
                 $loginRequest = LoginRequest::find($user->id) ->latest()
                     ->first();
 
-                // If we found the request and it's not pending, return the result
-                if ($loginRequest && $loginRequest->status !== 'pending') {
+                // If we found the request and it's not denied, return the result
+                if ($loginRequest && $loginRequest->status !== 'denied') {
                     // Timeout if the status isn't updated within the time limit
 
 
